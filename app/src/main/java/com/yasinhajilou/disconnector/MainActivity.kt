@@ -23,6 +23,9 @@ class MainActivity : AppCompatActivity() {
         activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(activityMainBinding.root)
 
+        val notifUtil = NotificationUtil(this)
+        notifUtil.createNotificationChannel()
+
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         vpnUtil = VpnUtil(this)
@@ -41,7 +44,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val intent = Intent(this, AlarmReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(this, 0, intent , 0)
+        val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0)
         val calendar = Calendar.getInstance().apply {
             timeInMillis = System.currentTimeMillis()
             val currentHour = this.get(Calendar.HOUR_OF_DAY)
