@@ -1,13 +1,15 @@
 package com.yasinhajilou.disconnector
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
-import android.view.WindowInsets
-import android.view.WindowInsetsController
+import android.widget.CompoundButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.yasinhajilou.disconnector.databinding.ActivityMainBinding
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -15,10 +17,13 @@ class MainActivity : AppCompatActivity() {
     private var vpnConnection = false
     private val vpnIntentCode = 101
     private lateinit var vpnUtil: VpnUtil
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(activityMainBinding.root)
+
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         vpnUtil = VpnUtil(this)
 
@@ -32,6 +37,30 @@ class MainActivity : AppCompatActivity() {
                     onActivityResult(vpnIntentCode, RESULT_OK, null)
             } else {
                 showToast("Vpn is not connected!")
+            }
+        }
+
+        val intent = Intent(this, AlarmReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(this, 0, intent , 0)
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = System.currentTimeMillis()
+            val currentHour = this.get(Calendar.HOUR_OF_DAY)
+            val currentMin = this.get(Calendar.MINUTE)
+            set(Calendar.HOUR_OF_DAY, currentHour)
+            set(Calendar.MINUTE, currentMin)
+        }
+
+        activityMainBinding.layoutBottomSheet.switchLighthouse.setOnCheckedChangeListener { _, checked ->
+            if (checked)
+                alarmManager.setRepeating(
+                    AlarmManager.RTC,
+                    calendar.timeInMillis,
+                    90 * 1000,
+                    pendingIntent
+                )
+            else {
+                alarmManager.cancel(pendingIntent)
+                pendingIntent.cancel()
             }
         }
     }

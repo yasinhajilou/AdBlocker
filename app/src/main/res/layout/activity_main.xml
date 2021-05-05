@@ -48,6 +48,6 @@
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <include layout="@layout/bottom_sheet_lighthouse" />
+    <include android:id="@+id/layout_bottom_sheet" layout="@layout/bottom_sheet_lighthouse" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
