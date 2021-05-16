@@ -13,7 +13,8 @@ import androidx.core.app.NotificationManagerCompat
 class NotificationUtil(private val context: Context) {
     private val CHANNEL_ID = "110"
     private val NOTIFICATION_ID = 125
-    public fun createNotificationChannel() {
+
+    fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
             val notifChannel = NotificationChannel(
                 CHANNEL_ID,
@@ -29,9 +30,9 @@ class NotificationUtil(private val context: Context) {
         }
     }
 
-    public fun showNotification() {
+    fun showNotification() {
         val intent = Intent(context, AlarmReceiver::class.java)
-        intent.putExtra("KEY", 100)
+        intent.putExtra("NotificationButton", 100)
         val pendingIntent = PendingIntent.getBroadcast(context, 1254, intent, 0)
         val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_security_off)
@@ -46,7 +47,7 @@ class NotificationUtil(private val context: Context) {
         }
     }
 
-    public fun removeNotification() {
+    fun removeNotification() {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancel(NOTIFICATION_ID)

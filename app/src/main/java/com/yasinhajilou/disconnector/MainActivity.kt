@@ -4,7 +4,9 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.SystemClock
 import android.widget.CompoundButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -17,18 +19,21 @@ class MainActivity : AppCompatActivity() {
     private var vpnConnection = false
     private val vpnIntentCode = 101
     private lateinit var vpnUtil: VpnUtil
+    private val sharedPreferences = applicationContext.getSharedPreferences("AppSP" , MODE_PRIVATE)
+    private lateinit var editor: SharedPreferences.Editor
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(activityMainBinding.root)
 
+        vpnUtil = VpnUtil(this)
+
         val notifUtil = NotificationUtil(this)
         notifUtil.createNotificationChannel()
 
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        vpnUtil = VpnUtil(this)
 
         activityMainBinding.ivSwitch.setOnClickListener {
             vpnConnection = vpnUtil.isVpnConnected()
@@ -43,27 +48,18 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val intent = Intent(this, AlarmReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0)
-        val calendar = Calendar.getInstance().apply {
-            timeInMillis = System.currentTimeMillis()
-            val currentHour = this.get(Calendar.HOUR_OF_DAY)
-            val currentMin = this.get(Calendar.MINUTE + 1)
-            set(Calendar.HOUR_OF_DAY, currentHour)
-            set(Calendar.MINUTE, currentMin)
-        }
 
         activityMainBinding.layoutBottomSheet.switchLighthouse.setOnCheckedChangeListener { _, checked ->
-            if (checked)
-                alarmManager.setRepeating(
-                    AlarmManager.RTC,
-                    calendar.timeInMillis,
-                    90 * 1000,
-                    pendingIntent
+            if (checked) {
+                alarmManager.setInexactRepeating(
+                    AlarmManager.ELAPSED_REALTIME,
+                    SystemClock.elapsedRealtime(),
+                    AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+                    getPendingIntent()
                 )
-            else {
-                alarmManager.cancel(pendingIntent)
-                pendingIntent.cancel()
+            } else {
+                alarmManager.cancel(getPendingIntent())
+                getPendingIntent().cancel()
             }
         }
     }
@@ -109,4 +105,8 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
     }
 
+    private fun getPendingIntent(): PendingIntent {
+        val intent = Intent(this, AlarmReceiver::class.java)
+        return PendingIntent.getBroadcast(this, 0, intent, 0)
+    }
 }
