@@ -19,8 +19,7 @@ class MainActivity : AppCompatActivity() {
     private var vpnConnection = false
     private val vpnIntentCode = 101
     private lateinit var vpnUtil: VpnUtil
-    private val sharedPreferences = applicationContext.getSharedPreferences("AppSP" , MODE_PRIVATE)
-    private lateinit var editor: SharedPreferences.Editor
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
