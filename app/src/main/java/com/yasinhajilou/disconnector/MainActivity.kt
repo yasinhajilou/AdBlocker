@@ -19,6 +19,8 @@ class MainActivity : AppCompatActivity() {
     private var vpnConnection = false
     private val vpnIntentCode = 101
     private lateinit var vpnUtil: VpnUtil
+    private lateinit var sharedPreferenceUtil: SharedPreferenceUtil
+    private lateinit var alarmManager: AlarmManager
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,15 +28,19 @@ class MainActivity : AppCompatActivity() {
         activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(activityMainBinding.root)
 
+        setUpSwitchView()
+
         vpnUtil = VpnUtil(this)
+
+        sharedPreferenceUtil = SharedPreferenceUtil(this)
 
         val notifUtil = NotificationUtil(this)
         notifUtil.createNotificationChannel()
 
-        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
 
-        activityMainBinding.ivSwitch.setOnClickListener {
+        activityMainBinding.ivVpnPower.setOnClickListener {
             vpnConnection = vpnUtil.isVpnConnected()
             if (vpnConnection) {
                 val intent = vpnUtil.disconnectVpn()
@@ -50,17 +56,32 @@ class MainActivity : AppCompatActivity() {
 
         activityMainBinding.layoutBottomSheet.switchLighthouse.setOnCheckedChangeListener { _, checked ->
             if (checked) {
-                alarmManager.setInexactRepeating(
-                    AlarmManager.ELAPSED_REALTIME,
-                    SystemClock.elapsedRealtime(),
-                    AlarmManager.INTERVAL_FIFTEEN_MINUTES,
-                    getPendingIntent()
-                )
+                setAlarm()
             } else {
-                alarmManager.cancel(getPendingIntent())
-                getPendingIntent().cancel()
+                cancelAlarm()
             }
+
+            sharedPreferenceUtil.editAlarmStatus(checked)
         }
+    }
+
+    fun setUpSwitchView() {
+        val state = sharedPreferenceUtil.getAlarmStatus()
+        activityMainBinding.layoutBottomSheet.switchLighthouse.isChecked = state
+    }
+
+    fun cancelAlarm() {
+        alarmManager.cancel(getPendingIntent())
+        getPendingIntent().cancel()
+    }
+
+    fun setAlarm() {
+        alarmManager.setInexactRepeating(
+            AlarmManager.ELAPSED_REALTIME,
+            SystemClock.elapsedRealtime(),
+            AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+            getPendingIntent()
+        )
     }
 
     override fun onResume() {
